@@ -30,13 +30,16 @@ export type DayRecord = {
 export function parseTimeToMinutes(raw: unknown): number | null {
   if (raw === null || raw === undefined) return null;
 
-  // Excel serial fraction of a day
+  // Excel time cells arrive as a fraction of a day (0.5 = 12:00 PM)
   if (typeof raw === "number" && Number.isFinite(raw)) {
     const frac = raw % 1;
-    if (raw > 0 && raw < 1440 && Number.isInteger(raw)) return raw < 1440 ? raw : null;
-    const mins = Math.round(frac * 1440);
-    return mins >= 0 && mins < 1440 ? mins : null;
+    if (frac > 0 || (raw > 0 && raw < 1)) {
+      const mins = Math.round(frac * 1440) % 1440;
+      return mins;
+    }
+    raw = String(raw);
   }
+
 
   let s = String(raw).trim().toLowerCase();
   if (!s) return null;
