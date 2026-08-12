@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance_punches: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          import_batch_id: string | null
+          punch_date: string
+          punch_minutes: number
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          import_batch_id?: string | null
+          punch_date: string
+          punch_minutes: number
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          import_batch_id?: string | null
+          punch_date?: string
+          punch_minutes?: number
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_punches_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_punches_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          active: boolean
+          created_at: string
+          department: string | null
+          designation: string | null
+          employee_code: string
+          id: string
+          is_demo: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          department?: string | null
+          designation?: string | null
+          employee_code: string
+          id?: string
+          is_demo?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          department?: string | null
+          designation?: string | null
+          employee_code?: string
+          id?: string
+          is_demo?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      import_batches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          employees_created: number
+          employees_updated: number
+          error_count: number
+          file_format: string
+          file_name: string
+          id: string
+          messages: Json
+          period_end: string | null
+          period_start: string | null
+          punches_inserted: number
+          punches_skipped: number
+          status: string
+          total_rows: number
+          warning_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          employees_created?: number
+          employees_updated?: number
+          error_count?: number
+          file_format?: string
+          file_name: string
+          id?: string
+          messages?: Json
+          period_end?: string | null
+          period_start?: string | null
+          punches_inserted?: number
+          punches_skipped?: number
+          status?: string
+          total_rows?: number
+          warning_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          employees_created?: number
+          employees_updated?: number
+          error_count?: number
+          file_format?: string
+          file_name?: string
+          id?: string
+          messages?: Json
+          period_end?: string | null
+          period_start?: string | null
+          punches_inserted?: number
+          punches_skipped?: number
+          status?: string
+          total_rows?: number
+          warning_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
