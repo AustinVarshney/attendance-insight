@@ -42,7 +42,7 @@ export function StatusBadge({ status }: { status: "present" | "absent" | "incomp
   );
 }
 
-export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
+export function EmptyState({ title, description, action }: { title: string; description?: string | undefined; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border py-14 text-center">
       <p className="text-sm font-medium">{title}</p>
