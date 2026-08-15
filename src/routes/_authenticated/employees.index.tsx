@@ -52,6 +52,7 @@ function EmployeesPage() {
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
     return (employeesQ.data ?? [])
+      .filter((e) => dept === "all" || (e.department ?? "") === dept)
       .filter(
         (e) =>
           !term ||
@@ -63,7 +64,8 @@ function EmployeesPage() {
         const summary = summarize(buildMonthSeries(byEmployee.get(e.id) ?? [], year, month));
         return { employee: e, summary };
       });
-  }, [employeesQ.data, byEmployee, q, year, month]);
+  }, [employeesQ.data, byEmployee, q, dept, year, month]);
+
 
   const error = employeesQ.error ?? punchesQ.error;
 
