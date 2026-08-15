@@ -31,10 +31,20 @@ function DashboardPage() {
   const employeesQ = useEmployees();
   const punchesQ = useMonthPunches(year, month);
   const [selected, setSelected] = useState<string>("");
+  const [dept, setDept] = useState<string>("all");
   const [exporting, setExporting] = useState(false);
 
-  const employees = employeesQ.data ?? [];
+  const allEmployees = employeesQ.data ?? [];
+  const departments = useMemo(
+    () => Array.from(new Set(allEmployees.map((e) => e.department).filter((d): d is string => !!d))).sort(),
+    [allEmployees],
+  );
+  const employees = useMemo(
+    () => (dept === "all" ? allEmployees : allEmployees.filter((e) => (e.department ?? "") === dept)),
+    [allEmployees, dept],
+  );
   const punches = punchesQ.data ?? [];
+
 
   const byEmployee = useMemo(() => {
     const map = new Map<string, Punch[]>();
