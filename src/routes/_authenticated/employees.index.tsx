@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmployees, useMonthPunches } from "@/hooks/useAttendanceData";
 import { buildMonthSeries, minutesToLabel, monthLabel, summarize, type Punch } from "@/lib/attendance";
@@ -30,6 +32,14 @@ function EmployeesPage() {
   const employeesQ = useEmployees();
   const punchesQ = useMonthPunches(year, month);
   const [q, setQ] = useState("");
+  const [dept, setDept] = useState("all");
+
+  const departments = useMemo(
+    () =>
+      Array.from(new Set((employeesQ.data ?? []).map((e) => e.department).filter((d): d is string => !!d))).sort(),
+    [employeesQ.data],
+  );
+
 
   const byEmployee = useMemo(() => {
     const map = new Map<string, Punch[]>();
@@ -44,6 +54,7 @@ function EmployeesPage() {
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
     return (employeesQ.data ?? [])
+      .filter((e) => dept === "all" || (e.department ?? "") === dept)
       .filter(
         (e) =>
           !term ||
@@ -55,7 +66,8 @@ function EmployeesPage() {
         const summary = summarize(buildMonthSeries(byEmployee.get(e.id) ?? [], year, month));
         return { employee: e, summary };
       });
-  }, [employeesQ.data, byEmployee, q, year, month]);
+  }, [employeesQ.data, byEmployee, q, dept, year, month]);
+
 
   const error = employeesQ.error ?? punchesQ.error;
 
@@ -74,15 +86,31 @@ function EmployeesPage() {
         </div>
       ) : null}
 
-      <div className="mb-4 relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search name, code or department"
-          className="pl-9"
-        />
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="relative w-full max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search name, code or department"
+            className="pl-9"
+          />
+        </div>
+        <Select value={dept} onValueChange={setDept}>
+          <SelectTrigger className="h-9 w-[200px]" aria-label="Department filter">
+            <SelectValue placeholder="All departments" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All departments</SelectItem>
+            {departments.map((d) => (
+              <SelectItem key={d} value={d}>
+                {d}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
 
       <Card className="py-0">
         <CardContent className="px-0">

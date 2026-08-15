@@ -31,10 +31,20 @@ function DashboardPage() {
   const employeesQ = useEmployees();
   const punchesQ = useMonthPunches(year, month);
   const [selected, setSelected] = useState<string>("");
+  const [dept, setDept] = useState<string>("all");
   const [exporting, setExporting] = useState(false);
 
-  const employees = employeesQ.data ?? [];
+  const allEmployees = employeesQ.data ?? [];
+  const departments = useMemo(
+    () => Array.from(new Set(allEmployees.map((e) => e.department).filter((d): d is string => !!d))).sort(),
+    [allEmployees],
+  );
+  const employees = useMemo(
+    () => (dept === "all" ? allEmployees : allEmployees.filter((e) => (e.department ?? "") === dept)),
+    [allEmployees, dept],
+  );
   const punches = punchesQ.data ?? [];
+
 
   const byEmployee = useMemo(() => {
     const map = new Map<string, Punch[]>();
@@ -46,7 +56,7 @@ function DashboardPage() {
     return map;
   }, [punches]);
 
-  const activeId = selected || employees[0]?.id || "";
+  const activeId = employees.some((e) => e.id === selected) ? selected : employees[0]?.id || "";
   const activeEmployee = employees.find((e) => e.id === activeId);
   const series = useMemo(
     () => buildMonthSeries(byEmployee.get(activeId) ?? [], year, month),
@@ -56,8 +66,10 @@ function DashboardPage() {
 
   const overall = useMemo(() => {
     const covered = employees.filter((e) => (byEmployee.get(e.id)?.length ?? 0) > 0).length;
-    return { covered, totalPunches: punches.length };
-  }, [employees, byEmployee, punches.length]);
+    const totalPunches = employees.reduce((a, e) => a + (byEmployee.get(e.id)?.length ?? 0), 0);
+    return { covered, totalPunches };
+  }, [employees, byEmployee]);
+
 
   const exportAll = async () => {
     setExporting(true);
@@ -81,7 +93,21 @@ function DashboardPage() {
         description={`Attendance overview for ${monthLabel(year, month)}`}
         actions={
           <>
+            <Select value={dept} onValueChange={setDept}>
+              <SelectTrigger className="h-9 w-[180px]" aria-label="Department filter">
+                <SelectValue placeholder="All departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All departments</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
+
             <Button size="sm" onClick={exportAll} disabled={exporting || employees.length === 0}>
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               All employees PDF
