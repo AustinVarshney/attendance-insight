@@ -93,7 +93,21 @@ function DashboardPage() {
         description={`Attendance overview for ${monthLabel(year, month)}`}
         actions={
           <>
+            <Select value={dept} onValueChange={setDept}>
+              <SelectTrigger className="h-9 w-[180px]" aria-label="Department filter">
+                <SelectValue placeholder="All departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All departments</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
+
             <Button size="sm" onClick={exportAll} disabled={exporting || employees.length === 0}>
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               All employees PDF
