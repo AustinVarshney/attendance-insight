@@ -30,6 +30,14 @@ function EmployeesPage() {
   const employeesQ = useEmployees();
   const punchesQ = useMonthPunches(year, month);
   const [q, setQ] = useState("");
+  const [dept, setDept] = useState("all");
+
+  const departments = useMemo(
+    () =>
+      Array.from(new Set((employeesQ.data ?? []).map((e) => e.department).filter((d): d is string => !!d))).sort(),
+    [employeesQ.data],
+  );
+
 
   const byEmployee = useMemo(() => {
     const map = new Map<string, Punch[]>();
