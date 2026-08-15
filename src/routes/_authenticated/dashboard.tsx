@@ -56,7 +56,7 @@ function DashboardPage() {
     return map;
   }, [punches]);
 
-  const activeId = selected || employees[0]?.id || "";
+  const activeId = employees.some((e) => e.id === selected) ? selected : employees[0]?.id || "";
   const activeEmployee = employees.find((e) => e.id === activeId);
   const series = useMemo(
     () => buildMonthSeries(byEmployee.get(activeId) ?? [], year, month),
@@ -66,8 +66,10 @@ function DashboardPage() {
 
   const overall = useMemo(() => {
     const covered = employees.filter((e) => (byEmployee.get(e.id)?.length ?? 0) > 0).length;
-    return { covered, totalPunches: punches.length };
-  }, [employees, byEmployee, punches.length]);
+    const totalPunches = employees.reduce((a, e) => a + (byEmployee.get(e.id)?.length ?? 0), 0);
+    return { covered, totalPunches };
+  }, [employees, byEmployee]);
+
 
   const exportAll = async () => {
     setExporting(true);
