@@ -1,0 +1,1 @@
+DELETE FROM public.attendance_punches WHERE punch_date = '2026-08-28' AND source = 'manual';

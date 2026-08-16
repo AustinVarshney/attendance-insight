@@ -212,7 +212,7 @@ function ImportPage() {
           </Card>
 
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Button onClick={commit} disabled={committing || parsed.punches.length === 0}>
+            <Button onClick={commit} disabled={committing || parsed.punches.length === 0 || errors.length > 0}>
               {committing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
               Commit import
             </Button>
@@ -220,9 +220,12 @@ function ImportPage() {
               Discard
             </Button>
             <span className="text-xs text-muted-foreground">
-              Re-importing the same file is safe — existing punches are skipped, never duplicated.
+              {errors.length
+                ? "Fix the errors above before committing — nothing is saved yet."
+                : "Re-importing the same file is safe — existing punches are skipped, never duplicated."}
             </span>
           </div>
+
         </>
       ) : busy ? null : (
         <div className="mt-5 flex items-center gap-2 rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">

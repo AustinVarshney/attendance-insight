@@ -85,17 +85,35 @@ export async function commitImport(
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
   let inserted = 0;
-  for (const part of chunk(rows, 500)) {
-    const { data, error } = await supabase
-      .from("attendance_punches")
-      .upsert(part, {
-        onConflict: "employee_id,punch_date,punch_minutes",
-        ignoreDuplicates: true,
+  try {
+    for (const part of chunk(rows, 500)) {
+      const { data, error } = await supabase
+        .from("attendance_punches")
+        .upsert(part, {
+          onConflict: "employee_id,punch_date,punch_minutes",
+          ignoreDuplicates: true,
+        })
+        .select("id");
+      if (error) throw error;
+      inserted += data?.length ?? 0;
+    }
+  } catch (err) {
+    // Never leave a batch stuck in "processing".
+    await supabase
+      .from("import_batches")
+      .update({
+        status: "failed",
+        punches_inserted: inserted,
+        error_count: parsed.messages.filter((m) => m.level === "error").length + 1,
+        messages: [
+          ...parsed.messages,
+          { level: "error", message: err instanceof Error ? err.message : "Import failed while saving punches." },
+        ],
       })
-      .select("id");
-    if (error) throw error;
-    inserted += data?.length ?? 0;
+      .eq("id", batch.id);
+    throw err;
   }
+
 
   const employeesCreated = parsed.employees.filter((e) => !existingCodes.has(e.employee_code)).length;
   const result: CommitResult = {
