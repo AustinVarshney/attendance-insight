@@ -118,6 +118,14 @@ function ManualEntryPage() {
     if (!canSave) return;
     setSaving(true);
     try {
+      // Snapshot the current day so a failed insert can never leave the day empty.
+      const { data: snapshot, error: snapErr } = await supabase
+        .from("attendance_punches")
+        .select("punch_minutes, source")
+        .eq("employee_id", employeeId)
+        .eq("punch_date", date);
+      if (snapErr) throw snapErr;
+
       const { error: delErr } = await supabase
         .from("attendance_punches")
         .delete()
@@ -134,7 +142,19 @@ function ManualEntryPage() {
             source: "manual",
           })),
         );
-        if (insErr) throw insErr;
+        if (insErr) {
+          if (snapshot?.length) {
+            await supabase.from("attendance_punches").insert(
+              snapshot.map((p) => ({
+                employee_id: employeeId,
+                punch_date: date,
+                punch_minutes: p.punch_minutes,
+                source: p.source,
+              })),
+            );
+          }
+          throw insErr;
+        }
       }
 
       setExistingCount(sorted.length);
@@ -148,6 +168,7 @@ function ManualEntryPage() {
       setSaving(false);
     }
   };
+
 
   const deleteDay = async () => {
     if (!employeeId || !date) return;
