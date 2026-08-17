@@ -71,10 +71,11 @@ export function parseDateHeader(cell: Cell, fbYear: number, fbMonth: number): st
   if (cell instanceof Date && !isNaN(cell.getTime())) {
     return isoDate(cell.getFullYear(), cell.getMonth() + 1, cell.getDate());
   }
+  // Strip weekday words and any trailing descriptive text, keep the date token.
   const s = String(cell).trim();
-  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  let m = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
   if (m) return isoDate(Number(m[1]), Number(m[2]), Number(m[3]));
-  m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
+  m = s.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
   if (m) {
     const yr = Number(m[3]!.length === 2 ? `20${m[3]}` : m[3]);
     const a = Number(m[1]);
@@ -99,6 +100,7 @@ export function parseDateHeader(cell: Cell, fbYear: number, fbMonth: number): st
   }
   return null;
 }
+
 
 /** Heuristically find the header row and infer a column mapping. */
 export function detectMapping(sheet: Sheet, fbYear: number, fbMonth: number): ColumnMapping {
