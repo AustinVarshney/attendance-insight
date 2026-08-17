@@ -73,6 +73,7 @@ function EmployeesPage() {
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
     return (employeesQ.data ?? [])
+      .filter((e) => status === "all" || (status === "active" ? e.active : !e.active))
       .filter((e) => dept === "all" || (e.department ?? "") === dept)
       .filter(
         (e) =>
@@ -85,7 +86,7 @@ function EmployeesPage() {
         const summary = summarize(buildMonthSeries(byEmployee.get(e.id) ?? [], year, month));
         return { employee: e, summary };
       });
-  }, [employeesQ.data, byEmployee, q, dept, year, month]);
+  }, [employeesQ.data, byEmployee, q, dept, status, year, month]);
 
 
   const error = employeesQ.error ?? punchesQ.error;
@@ -95,7 +96,21 @@ function EmployeesPage() {
       <PageHeader
         title="Employees"
         description={`Attendance coverage for ${monthLabel(year, month)}`}
-        actions={<MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />}
+        actions={
+          <div className="flex items-center gap-2">
+            <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
+            <Button
+              size="sm"
+              onClick={() => {
+                setTarget(null);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Add employee
+            </Button>
+          </div>
+        }
       />
 
       {error ? (
@@ -128,7 +143,21 @@ function EmployeesPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+          <SelectTrigger className="h-9 w-[160px]" aria-label="Status filter">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active only</SelectItem>
+            <SelectItem value="inactive">Inactive only</SelectItem>
+            <SelectItem value="all">All employees</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      <EmployeeFormDialog open={formOpen} onOpenChange={setFormOpen} employee={target} />
+      <EmployeeDeleteDialog open={removeOpen} onOpenChange={setRemoveOpen} employee={target} />
+
 
 
       <Card className="py-0">
