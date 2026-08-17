@@ -191,7 +191,9 @@ function ManualEntryPage() {
     }
   };
 
-  const employees = employeesQ.data ?? [];
+  // Inactive employees stay in history/reports but are hidden from entry selectors.
+  const employees = (employeesQ.data ?? []).filter((e) => e.active || e.id === employeeId);
+
 
   return (
     <div>
