@@ -1,19 +1,33 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, Search } from "lucide-react";
+import { AlertCircle, MoreHorizontal, Pencil, Plus, Search, UserMinus } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { MonthPicker, useMonthState } from "@/components/MonthPicker";
+import { EmployeeDeleteDialog, EmployeeFormDialog } from "@/components/EmployeeDialogs";
 import { EmptyState } from "@/components/ui-bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmployees, useMonthPunches } from "@/hooks/useAttendanceData";
-import { buildMonthSeries, minutesToLabel, monthLabel, summarize, type Punch } from "@/lib/attendance";
+import {
+  buildMonthSeries,
+  minutesToLabel,
+  monthLabel,
+  summarize,
+  type Employee,
+  type Punch,
+} from "@/lib/attendance";
 
 export const Route = createFileRoute("/_authenticated/employees/")({
   head: () => ({
@@ -33,12 +47,17 @@ function EmployeesPage() {
   const punchesQ = useMonthPunches(year, month);
   const [q, setQ] = useState("");
   const [dept, setDept] = useState("all");
+  const [status, setStatus] = useState<"active" | "inactive" | "all">("active");
+  const [formOpen, setFormOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [target, setTarget] = useState<Employee | null>(null);
 
   const departments = useMemo(
     () =>
       Array.from(new Set((employeesQ.data ?? []).map((e) => e.department).filter((d): d is string => !!d))).sort(),
     [employeesQ.data],
   );
+
 
 
   const byEmployee = useMemo(() => {
@@ -54,6 +73,7 @@ function EmployeesPage() {
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
     return (employeesQ.data ?? [])
+      .filter((e) => status === "all" || (status === "active" ? e.active : !e.active))
       .filter((e) => dept === "all" || (e.department ?? "") === dept)
       .filter(
         (e) =>
@@ -66,7 +86,7 @@ function EmployeesPage() {
         const summary = summarize(buildMonthSeries(byEmployee.get(e.id) ?? [], year, month));
         return { employee: e, summary };
       });
-  }, [employeesQ.data, byEmployee, q, dept, year, month]);
+  }, [employeesQ.data, byEmployee, q, dept, status, year, month]);
 
 
   const error = employeesQ.error ?? punchesQ.error;
@@ -76,7 +96,21 @@ function EmployeesPage() {
       <PageHeader
         title="Employees"
         description={`Attendance coverage for ${monthLabel(year, month)}`}
-        actions={<MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />}
+        actions={
+          <div className="flex items-center gap-2">
+            <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
+            <Button
+              size="sm"
+              onClick={() => {
+                setTarget(null);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Add employee
+            </Button>
+          </div>
+        }
       />
 
       {error ? (
@@ -109,7 +143,21 @@ function EmployeesPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+          <SelectTrigger className="h-9 w-[160px]" aria-label="Status filter">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active only</SelectItem>
+            <SelectItem value="inactive">Inactive only</SelectItem>
+            <SelectItem value="all">All employees</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      <EmployeeFormDialog open={formOpen} onOpenChange={setFormOpen} employee={target} />
+      <EmployeeDeleteDialog open={removeOpen} onOpenChange={setRemoveOpen} employee={target} />
+
 
 
       <Card className="py-0">
@@ -172,12 +220,42 @@ function EmployeesPage() {
                       <TableCell className="hidden sm:table-cell tabular text-right">{minutesToLabel(summary.avgFirstIn)}</TableCell>
                       <TableCell className="hidden sm:table-cell tabular text-right">{minutesToLabel(summary.avgLastOut)}</TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link to="/employees/$id" params={{ id: e.id }}>
-                            View
-                          </Link>
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link to="/employees/$id" params={{ id: e.id }}>
+                              View
+                            </Link>
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" aria-label={`Actions for ${e.name}`}>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onSelect={() => {
+                                  setTarget(e);
+                                  setFormOpen(true);
+                                }}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onSelect={() => {
+                                  setTarget(e);
+                                  setRemoveOpen(true);
+                                }}
+                              >
+                                <UserMinus className="mr-2 h-4 w-4" />
+                                Deactivate / remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>

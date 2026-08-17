@@ -77,15 +77,20 @@ export function parseTimeToMinutes(raw: unknown): number | null {
   return h * 60 + m;
 }
 
-/** Split a cell that may contain several comma / slash / newline separated punches. */
+/** Split a cell that may contain several punches (comma, slash, whitespace or newline separated). */
 export function splitPunchCell(raw: unknown): string[] {
   if (raw === null || raw === undefined) return [];
   if (typeof raw === "number") return [String(raw)];
-  return String(raw)
-    .split(/[,;/\n|]+/)
+  const text = String(raw);
+  // Preferred path: pull out every time-like token, whatever separates them.
+  const tokens = text.match(/\d{1,2}\s*[:.]\s*\d{2}(?:\s*[:.]\s*\d{2})?\s*(?:[ap]\.?m\.?)?/gi);
+  if (tokens && tokens.length) return tokens.map((t) => t.trim());
+  return text
+    .split(/[,;/\n|\s]+/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0 && !/^(a|abs|absent|-|--|off|wo|h|holiday)$/i.test(p));
 }
+
 
 export function minutesToLabel(mins: number | null | undefined): string {
   if (mins === null || mins === undefined) return "—";
