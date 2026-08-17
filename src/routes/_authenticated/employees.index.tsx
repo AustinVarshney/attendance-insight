@@ -1,19 +1,33 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, Search } from "lucide-react";
+import { AlertCircle, MoreHorizontal, Pencil, Plus, Search, UserMinus } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { MonthPicker, useMonthState } from "@/components/MonthPicker";
+import { EmployeeDeleteDialog, EmployeeFormDialog } from "@/components/EmployeeDialogs";
 import { EmptyState } from "@/components/ui-bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmployees, useMonthPunches } from "@/hooks/useAttendanceData";
-import { buildMonthSeries, minutesToLabel, monthLabel, summarize, type Punch } from "@/lib/attendance";
+import {
+  buildMonthSeries,
+  minutesToLabel,
+  monthLabel,
+  summarize,
+  type Employee,
+  type Punch,
+} from "@/lib/attendance";
 
 export const Route = createFileRoute("/_authenticated/employees/")({
   head: () => ({
@@ -33,12 +47,17 @@ function EmployeesPage() {
   const punchesQ = useMonthPunches(year, month);
   const [q, setQ] = useState("");
   const [dept, setDept] = useState("all");
+  const [status, setStatus] = useState<"active" | "inactive" | "all">("active");
+  const [formOpen, setFormOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [target, setTarget] = useState<Employee | null>(null);
 
   const departments = useMemo(
     () =>
       Array.from(new Set((employeesQ.data ?? []).map((e) => e.department).filter((d): d is string => !!d))).sort(),
     [employeesQ.data],
   );
+
 
 
   const byEmployee = useMemo(() => {
