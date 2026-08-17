@@ -220,12 +220,42 @@ function EmployeesPage() {
                       <TableCell className="hidden sm:table-cell tabular text-right">{minutesToLabel(summary.avgFirstIn)}</TableCell>
                       <TableCell className="hidden sm:table-cell tabular text-right">{minutesToLabel(summary.avgLastOut)}</TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link to="/employees/$id" params={{ id: e.id }}>
-                            View
-                          </Link>
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link to="/employees/$id" params={{ id: e.id }}>
+                              View
+                            </Link>
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" aria-label={`Actions for ${e.name}`}>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onSelect={() => {
+                                  setTarget(e);
+                                  setFormOpen(true);
+                                }}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onSelect={() => {
+                                  setTarget(e);
+                                  setRemoveOpen(true);
+                                }}
+                              >
+                                <UserMinus className="mr-2 h-4 w-4" />
+                                Deactivate / remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>
