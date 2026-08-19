@@ -41,6 +41,7 @@ export async function commitImport(
     .from("employees")
     .upsert(
       parsed.employees.map((e) => ({
+        id: e.employee_code,
         employee_code: e.employee_code,
         name: e.name,
         department: e.department,
