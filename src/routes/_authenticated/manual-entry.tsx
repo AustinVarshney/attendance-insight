@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,6 +23,11 @@ import { useEmployees } from "@/hooks/useAttendanceData";
 import { minutesToHm, minutesToLabel, parseTimeToMinutes, punchType } from "@/lib/attendance";
 
 export const Route = createFileRoute("/_authenticated/manual-entry")({
+  validateSearch: z.object({
+    employee: z.string().optional(),
+    date: z.string().optional(),
+  }),
+
   head: () => ({
     meta: [
       { title: "Manual punch entry — Attendance Graph" },
@@ -53,8 +59,11 @@ function todayIso() {
 function ManualEntryPage() {
   const queryClient = useQueryClient();
   const employeesQ = useEmployees();
-  const [employeeId, setEmployeeId] = useState("");
-  const [date, setDate] = useState(todayIso());
+
+  const search = Route.useSearch();
+
+  const [employeeId, setEmployeeId] = useState(search.employee ?? "");
+  const [date, setDate] = useState(search.date ?? todayIso());
   const [rows, setRows] = useState<Row[]>([newRow()]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

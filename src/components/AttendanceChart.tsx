@@ -49,7 +49,15 @@ function TooltipCard({ active, payload }: { active?: boolean; payload?: { payloa
   );
 }
 
-export function AttendanceChart({ series, height = 340 }: { series: DayRecord[]; height?: number }) {
+export function AttendanceChart({
+  series,
+  height = 340,
+  onDayClick,
+}: {
+  series: DayRecord[];
+  height?: number;
+  onDayClick?: (date: string) => void;
+}) {
   const data = useMemo<Point[]>(
     () =>
       series.map((d) => ({
@@ -65,7 +73,19 @@ export function AttendanceChart({ series, height = 340 }: { series: DayRecord[];
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 16, left: 4, bottom: 4 }}>
+        <LineChart
+          data={data}
+          margin={{ top: 8, right: 16, left: 4, bottom: 4 }}
+          onClick={(state) => {
+            if (!onDayClick || !state?.activePayload?.length) return;
+
+            const point = state.activePayload[0]?.payload as Point | undefined;
+            if (point?.date) {
+              onDayClick(point.date);
+            }
+          }}
+          style={{ cursor: onDayClick ? "pointer" : undefined }}
+        >
           <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="day"
@@ -100,8 +120,8 @@ export function AttendanceChart({ series, height = 340 }: { series: DayRecord[];
             dataKey="firstIn"
             stroke="var(--chart-in)"
             strokeWidth={2}
-            dot={{ r: 2.5, strokeWidth: 0, fill: "var(--chart-in)" }}
-            activeDot={{ r: 4 }}
+            dot={{ r: 4, strokeWidth: 0, fill: "var(--chart-in)" }}
+            activeDot={{ r: 6 }}
             connectNulls={false}
             isAnimationActive={false}
           />
@@ -111,8 +131,8 @@ export function AttendanceChart({ series, height = 340 }: { series: DayRecord[];
             dataKey="lastOut"
             stroke="var(--chart-out)"
             strokeWidth={2}
-            dot={{ r: 2.5, strokeWidth: 0, fill: "var(--chart-out)" }}
-            activeDot={{ r: 4 }}
+            dot={{ r: 4, strokeWidth: 0, fill: "var(--chart-out)" }}
+            activeDot={{ r: 6 }}
             connectNulls={false}
             isAnimationActive={false}
           />

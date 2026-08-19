@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { ArrowLeft, Download } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
@@ -29,9 +29,20 @@ export const Route = createFileRoute("/_authenticated/employees/$id")({
 
 function EmployeeDetailPage() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const { year, month, setYear, setMonth } = useMonthState();
   const employeeQ = useEmployee(id);
   const punchesQ = useMonthPunches(year, month, id);
+
+  const openManualEntry = (date: string) => {
+    navigate({
+      to: "/manual-entry",
+      search: {
+        employee: id,
+        date,
+      },
+    });
+  };
 
   const series = useMemo(
     () => buildMonthSeries(punchesQ.data ?? [], year, month),
@@ -114,7 +125,14 @@ function EmployeeDetailPage() {
           <CardTitle className="text-base">First in / last out — {monthLabel(year, month)}</CardTitle>
         </CardHeader>
         <CardContent>
-          {punchesQ.isLoading ? <Skeleton className="h-[340px] w-full" /> : <AttendanceChart series={series} />}
+          {punchesQ.isLoading 
+            ? 
+          <Skeleton className="h-[340px] w-full" /> 
+            : 
+          <AttendanceChart 
+            series={series}
+            onDayClick={openManualEntry}   
+          />}
         </CardContent>
       </Card>
 
@@ -125,6 +143,9 @@ function EmployeeDetailPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[130px]">Date</TableHead>
+                  {/* <p className="px-4 py-2 text-xs text-muted-foreground">
+                    Click any day to add, edit, or delete punches.
+                  </p> */}
                   <TableHead>All punches</TableHead>
                   <TableHead className="w-[110px]">First in</TableHead>
                   <TableHead className="w-[110px]">Last out</TableHead>
@@ -134,7 +155,12 @@ function EmployeeDetailPage() {
               </TableHeader>
               <TableBody>
                 {series.map((d) => (
-                  <TableRow key={d.date}>
+                  <TableRow 
+                    key={d.date} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    title={`Click to edit punches for ${d.date}`}
+                    onClick={() => openManualEntry(d.date)}
+                  >
                     <TableCell className="tabular">
                       {String(d.day).padStart(2, "0")}{" "}
                       <span className="text-muted-foreground">

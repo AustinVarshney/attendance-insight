@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen">
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
           <div className="flex h-14 items-center gap-2 border-b border-border px-4">
             <div className="flex h-7 w-7 items-center justify-center rounded bg-primary text-[11px] font-bold text-primary-foreground">
               AG
@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="text-[11px] leading-tight text-muted-foreground">Internal HR tool</div>
             </div>
           </div>
-          <nav className="flex-1 space-y-0.5 p-2">
+          <nav className="flex-1 space-y-0.5 p-2 ">
             {NAV.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
@@ -55,7 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto h-screen">
           <header className="flex h-14 items-center justify-between gap-3 border-b border-border bg-card px-4 lg:hidden">
             <span className="text-sm font-semibold">Attendance Graph</span>
             <Button variant="ghost" size="sm" onClick={signOut}>
