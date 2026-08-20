@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import {
   buildMonthSeries,
   minutesToLabel,
+  minutesToWorkedHours,
   monthLabel,
   summarize,
   type DayRecord,
@@ -107,7 +108,7 @@ export function renderEmployeePage(
     ["Missing days", String(s.missingDays)],
     ["Avg first in", minutesToLabel(s.avgFirstIn)],
     ["Avg last out", minutesToLabel(s.avgLastOut)],
-    ["Total punches", String(s.totalPunches)],
+    ["Total hours worked", minutesToWorkedHours(s.totalWorkedMinutes)],
   ];
   const cw = (W - M * 2) / cards.length;
   cards.forEach(([label, value], i) => {

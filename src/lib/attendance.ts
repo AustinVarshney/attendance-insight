@@ -156,6 +156,11 @@ export function minutesToHm(mins: number | null | undefined): string {
   return `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
 }
 
+/** Format a duration in minutes for the monthly worked-hours summary. */
+export function minutesToWorkedHours(mins: number): string {
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
 export function punchType(index: number): "IN" | "OUT" {
   return index % 2 === 0 ? "IN" : "OUT";
 }
@@ -205,6 +210,7 @@ export type MonthSummary = {
   avgFirstIn: number | null;
   avgLastOut: number | null;
   totalPunches: number;
+  totalWorkedMinutes: number;
 };
 
 export function summarize(series: DayRecord[]): MonthSummary {
@@ -219,5 +225,9 @@ export function summarize(series: DayRecord[]): MonthSummary {
     avgFirstIn: avg(ins),
     avgLastOut: avg(outs),
     totalPunches: series.reduce((a, d) => a + d.total, 0),
+    totalWorkedMinutes: series.reduce(
+      (total, d) => total + (d.firstIn !== null && d.lastOut !== null ? d.lastOut - d.firstIn : 0),
+      0,
+    ),
   };
 }

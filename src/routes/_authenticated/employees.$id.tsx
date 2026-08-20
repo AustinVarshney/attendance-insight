@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmployee, useMonthPunches } from "@/hooks/useAttendanceData";
-import { buildMonthSeries, minutesToLabel, monthLabel, punchType, summarize } from "@/lib/attendance";
+import { buildMonthSeries, minutesToLabel, minutesToWorkedHours, monthLabel, punchType, summarize } from "@/lib/attendance";
 import { exportEmployeePdf } from "@/lib/pdf";
 import { toast } from "sonner";
 
@@ -117,7 +117,7 @@ function EmployeeDetailPage() {
         <StatCard label="Missing days" value={summary.missingDays} />
         <StatCard label="Avg first in" value={minutesToLabel(summary.avgFirstIn)} />
         <StatCard label="Avg last out" value={minutesToLabel(summary.avgLastOut)} />
-        <StatCard label="Total punches" value={summary.totalPunches} hint="Every punch preserved" />
+        <StatCard label="Total hours worked" value={minutesToWorkedHours(summary.totalWorkedMinutes)} />
       </div>
 
       <Card className="mt-5">
