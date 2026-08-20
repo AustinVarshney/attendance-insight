@@ -78,19 +78,69 @@ export function parseTimeToMinutes(raw: unknown): number | null {
 }
 
 /** Split a cell that may contain several punches (comma, slash, whitespace or newline separated). */
+// export function splitPunchCell(raw: unknown): string[] {
+//   if (raw === null || raw === undefined) return [];
+//   if (typeof raw === "number") return [String(raw)];
+//   const text = String(raw);
+//   // Preferred path: pull out every time-like token, whatever separates them.
+//   const tokens = text.match(/\d{1,2}\s*[:.]\s*\d{2}(?:\s*[:.]\s*\d{2})?\s*(?:[ap]\.?m\.?)?/gi);
+//   if (tokens && tokens.length) return tokens.map((t) => t.trim());
+//   return text
+//     .split(/[,;/\n|\s]+/)
+//     .map((p) => p.trim())
+//     .filter((p) => p.length > 0 && !/^(a|abs|absent|-|--|off|wo|h|holiday)$/i.test(p));
+// }
+
+/**
+ * Split a cell that may contain several punches.
+ *
+ * Supports:
+ *   08:36 AM, 02:24 PM, 05:50 PM
+ *   08:36 AM 02:24 PM
+ *   08:36 AM02:24 PM05:50 PM10:30 PM
+ *   08:36
+ *   08:36, 10:30
+ */
 export function splitPunchCell(raw: unknown): string[] {
   if (raw === null || raw === undefined) return [];
-  if (typeof raw === "number") return [String(raw)];
-  const text = String(raw);
-  // Preferred path: pull out every time-like token, whatever separates them.
-  const tokens = text.match(/\d{1,2}\s*[:.]\s*\d{2}(?:\s*[:.]\s*\d{2})?\s*(?:[ap]\.?m\.?)?/gi);
-  if (tokens && tokens.length) return tokens.map((t) => t.trim());
-  return text
-    .split(/[,;/\n|\s]+/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0 && !/^(a|abs|absent|-|--|off|wo|h|holiday)$/i.test(p));
-}
 
+  if (typeof raw === "number") {
+    return [String(raw)];
+  }
+
+  const text = String(raw).trim();
+
+  if (!text) return [];
+
+  // First, extract complete 12-hour time values.
+  //
+  // This intentionally does NOT require a separator between
+  // one time and the next.
+  //
+  // Example:
+  // 08:36 AM02:24 PM05:50 PM10:30 PM
+  //
+  // becomes:
+  // ["08:36 AM", "02:24 PM", "05:50 PM", "10:30 PM"]
+  const timeTokens = text.match(
+    /\d{1,2}\s*[:.]\s*\d{2}(?:\s*[:.]\s*\d{2})?\s*(?:AM|PM|am|pm)?/g
+  );
+
+  if (timeTokens && timeTokens.length > 0) {
+    return timeTokens.map((token) => token.trim());
+  }
+
+  // Fallback for values separated by commas, slashes,
+  // spaces, newlines, etc.
+  return text
+    .split(/[,;/\n|]+/)
+    .map((p) => p.trim())
+    .filter(
+      (p) =>
+        p.length > 0 &&
+        !/^(a|abs|absent|-|--|off|wo|h|holiday)$/i.test(p)
+    );
+}
 
 export function minutesToLabel(mins: number | null | undefined): string {
   if (mins === null || mins === undefined) return "—";
