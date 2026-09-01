@@ -22,6 +22,7 @@ export type DayRecord = {
   punches: number[];
   firstIn: number | null;
   lastOut: number | null;
+  workingMinutes: number;
   total: number;
   status: "present" | "absent" | "incomplete";
 };
@@ -189,14 +190,23 @@ export function buildMonthSeries(punches: Punch[], year: number, month: number):
   for (let d = 1; d <= total; d++) {
     const date = isoDate(year, month, d);
     const list = (byDate.get(date) ?? []).slice().sort((a, b) => a - b);
+    const workingMinutes = list.reduce(
+      (sum, punch, index) =>
+        index % 2 === 1 && punch > list[index - 1]! ? sum + punch - list[index - 1]! : sum,
+      0,
+    );
     const status: DayRecord["status"] =
-      list.length === 0 ? "absent" : list.length === 1 ? "incomplete" : "present";
+      list.length === 0 ? "absent" : list.length % 2 === 1 ? "incomplete" : "present";
     out.push({
       date,
       day: d,
       punches: list,
       firstIn: list.length ? list[0]! : null,
-      lastOut: list.length > 1 ? list[list.length - 1]! : null,
+      lastOut:
+        list.length > 1 && list.length % 2 === 0 && list[list.length - 1]! > list[list.length - 2]!
+          ? list[list.length - 1]!
+          : null,
+      workingMinutes,
       total: list.length,
       status,
     });
@@ -225,9 +235,6 @@ export function summarize(series: DayRecord[]): MonthSummary {
     avgFirstIn: avg(ins),
     avgLastOut: avg(outs),
     totalPunches: series.reduce((a, d) => a + d.total, 0),
-    totalWorkedMinutes: series.reduce(
-      (total, d) => total + (d.firstIn !== null && d.lastOut !== null ? d.lastOut - d.firstIn : 0),
-      0,
-    ),
+    totalWorkedMinutes: series.reduce((total, d) => total + d.workingMinutes, 0),
   };
 }
