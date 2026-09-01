@@ -128,22 +128,24 @@ export function renderEmployeePage(
     d.punches.map((p) => minutesToLabel(p)).join(", ") || "—",
     minutesToLabel(d.firstIn),
     minutesToLabel(d.lastOut),
+    d.workingMinutes ? minutesToWorkedHours(d.workingMinutes) : "—",
     String(d.total),
     d.status === "present" ? "Present" : d.status === "incomplete" ? "Incomplete" : "Absent",
   ]);
 
   autoTable(doc, {
     startY: 116,
-    head: [["Date", "All punches", "First in", "Last out", "#", "Status"]],
+    head: [["Date", "All punches", "First in", "Last out", "Work duration", "#", "Status"]],
     body: rows,
     theme: "grid",
     styles: { fontSize: 6.4, cellPadding: 1.1, lineColor: [226, 232, 240], textColor: [30, 41, 59] },
     headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: "bold" },
     columnStyles: {
       0: { cellWidth: 20 },
-      1: { cellWidth: 78 },
-      4: { cellWidth: 8, halign: "center" },
-      5: { cellWidth: 20 },
+      1: { cellWidth: 57 },
+      4: { cellWidth: 22 },
+      5: { cellWidth: 8, halign: "center" },
+      6: { cellWidth: 20 },
     },
     margin: { left: M, right: M, bottom: 12 },
   });

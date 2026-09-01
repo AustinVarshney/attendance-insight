@@ -149,6 +149,7 @@ function EmployeeDetailPage() {
                   <TableHead>All punches</TableHead>
                   <TableHead className="w-[110px]">First in</TableHead>
                   <TableHead className="w-[110px]">Last out</TableHead>
+                  <TableHead className="w-[120px]">Work duration</TableHead>
                   <TableHead className="w-[60px] text-right">#</TableHead>
                   <TableHead className="w-[120px]">Status</TableHead>
                 </TableRow>
@@ -186,6 +187,7 @@ function EmployeeDetailPage() {
                     </TableCell>
                     <TableCell className="tabular">{minutesToLabel(d.firstIn)}</TableCell>
                     <TableCell className="tabular">{minutesToLabel(d.lastOut)}</TableCell>
+                    <TableCell className="tabular">{d.workingMinutes ? minutesToWorkedHours(d.workingMinutes) : "—"}</TableCell>
                     <TableCell className="tabular text-right">{d.total}</TableCell>
                     <TableCell>
                       <StatusBadge status={d.status} />
